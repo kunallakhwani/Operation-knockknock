@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+	<context:component-scan base-package="cse591.web">
+	</context:component-scan>
+
+	<security:http use-expressions="true">
+		<security:intercept-url pattern="/user/logout"
+			access="permitAll" />
+		<security:intercept-url pattern="/favicon.ico"
+			access="ROLE_ANONYMOUS" />
+		<security:intercept-url pattern="/success"
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/user/login"
+			access="permitAll" />
+		<security:intercept-url pattern="/user/register"
+			access="permitAll" />
+			<security:intercept-url pattern="/message/add"
+			access="isAuthenticated()" />
+			<security:intercept-url pattern="/message/list"
+			access="isAuthenticated()" />
+		<security:intercept-url pattern="/" access="permitAll" />
+		<security:intercept-url pattern="/loginerror"
+			access="permitAll" />
+		<security:intercept-url pattern="/403" access="permitAll" />
+		<security:intercept-url pattern="/**" access="denyAll" />
+		<security:form-login login-page="/user/login"
+			username-parameter="username" password-parameter="password"
+			authentication-failure-url="/loginerror" default-target-url="/success" />
+		<security:logout invalidate-session="true"
+			delete-cookies="JSESSIONID" logout-url="/user/logout"
+			success-handler-ref="CustomLogoutHandler" />
+		<security:access-denied-handler
+			error-page="/403" />
+	</security:http>
+
+	<bean id="daoAuthenticationProvider"
+		class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
+		<property name="userDetailsService" ref="userDetailsService"></property>
+	</bean>
+	
+	<bean id="CustomLogoutHandler"
+		class="cse591.web.utils.CustomLogoutHandler">
+	</bean>
+
+	<bean id="authenticationManager"
+		class="org.springframework.security.authentication.ProviderManager">
+		<property name="providers">
+			<list>
+				<ref bean="daoAuthenticationProvider" />
+			</list>
+		</property>
+	</bean>
+
+	<security:authentication-manager>
+		<security:authentication-provider
+			user-service-ref="userDetailsService">
+			<security:password-encoder ref="passwordEncoder">
+			</security:password-encoder>
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+	<bean id="passwordEncoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+	</bean>
+
+	<security:global-method-security
+		secured-annotations="enabled"></security:global-method-security>
+</beans>
